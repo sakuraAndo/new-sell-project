@@ -1,5 +1,9 @@
 const { defineConfig } = require('@vue/cli-service');
 
+const path = require('path');
+
+const resolve = (dir) => path.join(__dirname, dir);
+
 module.exports = defineConfig({
   transpileDependencies: true,
   // webpack自定义配置，配置获取本地数据接口，使用proxy解决数据接口的跨域问题
@@ -24,5 +28,9 @@ module.exports = defineConfig({
         },
       };
     }
+  },
+
+  chainWebpack: (config) => {
+    config.resolve.alias.set('@', resolve('src'));
   },
 });

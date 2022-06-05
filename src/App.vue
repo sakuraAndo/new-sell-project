@@ -1,29 +1,65 @@
 <template>
   <div id="app">
-    <header>我是头部</header>
-    <div class="tab">
-      <div class="tab-item">商品</div>
-      <div class="tab-item">评价</div>
-      <div class="tab-item">商家</div>
+    <v-header :seller="seller"></v-header>
+    <div class="tab border-1px">
+      <div class="tab-item">
+        <router-link to="/goods">商品</router-link>
+      </div>
+      <div class="tab-item">
+        <router-link to="/ratings">评价</router-link>
+      </div>
+      <div class="tab-item">
+        <router-link to="/seller">商家</router-link>
+      </div>
     </div>
-    <div class="content">我是内容部分</div>
-    <!-- <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </nav>
-    <router-view/> -->
+    <router-view></router-view>
   </div>
 </template>
 
+<script>
+import header from '@/components/header/header.vue';
+import { getSellers } from '../api/index';
+
+export default {
+  components: {
+    'v-header': header,
+  },
+
+  data() {
+    return {
+      seller: {
+        // avatar: 'http://static.galileo.xiaojukeji.com/static/tms/seller_avatar_256px.jpg',
+      },
+    };
+  },
+
+  created() {
+    getSellers().then((res) => {
+      this.seller = res;
+      console.log(this.seller);
+    });
+  },
+};
+</script>
+
 <style lang="scss">
+@import './common/scss/mixin.scss';
 .tab {
   display: flex;
   width: 100%;
   height: 40px;
   line-height: 40px;
+  @include border-1px(rgba(7,17,27,0.1));
   .tab-item {
     flex: 1;
     text-align: center;
+    a {
+      display: block;
+      color: rgb(77,85,93);
+      &.router-link-active {
+        color: rgb(240, 20, 20);
+      }
+    }
   }
 }
 </style>
