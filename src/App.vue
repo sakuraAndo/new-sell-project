@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       seller: {
-        // avatar: 'http://static.galileo.xiaojukeji.com/static/tms/seller_avatar_256px.jpg',
+
       },
     };
   },
@@ -36,7 +36,6 @@ export default {
   created() {
     getSellers().then((res) => {
       this.seller = res;
-      console.log(this.seller);
     });
   },
 };
