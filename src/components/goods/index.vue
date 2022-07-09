@@ -30,11 +30,14 @@
                 <p class="desc">{{ food.description }}</p>
                 <div class="extra">
                   <span class="count">月售{{ food.sellCount }}</span>
-                  <span>好评率{{ food.rating }}</span>
+                  <span>好评率{{ food.rating }}%</span>
                 </div>
                 <div class="price">
                   <span class="now">￥{{ food.price }}</span>
                   <span v-show="food.oldPrice" class="old">￥{{ food.oldPrice }}</span>
+                </div>
+                <div class="cart-wrapper">
+                  <cartcontrol :food="food"></cartcontrol>
                 </div>
               </div>
             </li>
@@ -42,14 +45,30 @@
         </li>
       </ul>
     </div>
+    <shopcart
+      :selectFoods="selectFoods"
+      :deliveryPrice="seller.deliveryPrice"
+      :minPrice="seller.minPrice"
+    ></shopcart>
   </div>
 </template>
 
 <script>
 import BScroll from '@better-scroll/core';
 import { getGoods } from '../../../api';
+import shopcart from '../shopcart/shopcart.vue';
+import cartcontrol from '../cartcontrol/cartcontrol.vue';
 
 export default {
+  props: {
+    seller: {
+      type: Object,
+    },
+  },
+  components: {
+    shopcart,
+    cartcontrol,
+  },
   data() {
     return {
       goods: [],
@@ -74,20 +93,28 @@ export default {
       for (let i = 0; i < this.listHeight.length; i += 1) {
         const height1 = this.listHeight[i];
         const height2 = this.listHeight[i + 1];
-        // alert(this.scrollY);
-        // alert(height1);
         if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
-          // alert('sss');
           return i;
         }
       }
       return 0;
     },
+
+    selectFoods() {
+      const foods = [];
+      this.goods.forEach((item) => {
+        item.foods.forEach((food) => {
+          if (food.count) {
+            foods.push(food);
+          }
+        });
+      });
+      return foods;
+    },
   },
 
   methods: {
     selectMenu(index, event) {
-      console.log(event);
       // eslint-disable-next-line
       if (!event._constructed) {
         return;
@@ -236,6 +263,11 @@ export default {
             font-size: 10px;
             color: rgb(147, 153, 159);
           }
+        }
+        .cart-wrapper {
+          position: absolute;
+          right: 0;
+          bottom: 12px;
         }
       }
     }
