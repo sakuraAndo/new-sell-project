@@ -14,6 +14,20 @@
       <div class="content-right">
         <div class="pay" :class="payClass">{{ payDesc }}</div>
       </div>
+      <div class="ball-contain">
+        <div v-for="(ball, index) in balls" :key="index">
+          <transition
+            name="drop"
+            @before-enter="beforeDrop"
+            @enter="dropping"
+            @after-enter="afterDrop"
+          >
+            <div class="ball" v-show="ball.show">
+              <div class="inner inner-hook"></div>
+            </div>
+          </transition>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -35,6 +49,63 @@ export default {
     minPrice: {
       type: Number,
       default: 0,
+    },
+  },
+  data() {
+    return {
+      balls: [{ show: false }, { show: false }, { show: false }, { show: false }, { show: false }],
+      dropBalls: [],
+    };
+  },
+  methods: {
+    drop(el) {
+      for (let i = 0; i < this.balls.length; i += 1) {
+        const ball = this.balls[i];
+        if (!ball.show) {
+          this.dropBalls.push(ball);
+          ball.show = true;
+          ball.el = el;
+          return;
+        }
+      }
+    },
+    beforeDrop(el) {
+      let count = this.balls.length;
+      /* eslint-disable */
+      while (count--) {
+        const ball = this.balls[count];
+        if (ball.show) {
+          const rect = ball.el.getBoundingClientRect();
+          const x = rect.x - 32;
+          const y = -(window.innerHeight - rect.y - 22);
+          el.style.display = '';
+          el.style.webkitTransform = `translate3d(0px, ${y}px, 0px)`;
+          el.style.transform = `translate3d(0px, ${y}px, 0px)`;
+          const inner = el.getElementsByClassName('inner-hook')[0];
+          inner.style.webkitTransform = `translate3d(${x}px, 0px , 0px)`;
+          inner.style.transform = `translate3d(${x}px, 0px, 0px)`;
+        }
+      }
+    },
+    dropping(el, done) {
+      /* eslint-disable no-unused-vars */
+      const rf = el.offsetHeight;
+      this.$nextTick(() => {
+        el.style.webkitTransform = 'translate3d(0px, 0px, 0px)';
+        el.style.transform = 'translate3d(0px, 0px, 0px)';
+        const inner = el.getElementsByClassName('inner-hook')[0];
+        inner.style.webkitTransform = 'translate3d(0px, 0px, 0px)';
+        inner.style.transform = 'translate3d(0px, 0px, 0px)';
+        el.addEventListener('transitionend', done);
+      });
+    },
+
+    afterDrop(el) {
+      const ball = this.dropBalls.shift();
+      if (ball.show) {
+        ball.show = false;
+        el.style.display = 'none';
+      }
     },
   },
   computed: {
@@ -176,6 +247,22 @@ export default {
         &.enough {
           background: #00b43c;
           color: #fff;
+        }
+      }
+    }
+    .ball-contain {
+      .ball {
+        position: fixed;
+        left: 32px;
+        bottom: 22px;
+        z-index: 200;
+        transition: all 0.4s cubic-bezier(0.49, -0.29, 0.75, 0.41);
+        .inner {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background-color: rgb(0, 160, 220);
+          transition: all 0.4s linear;
         }
       }
     }

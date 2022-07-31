@@ -31,6 +31,6 @@ apiRouters.get('/ratings', (req, res) => {
 });
 
 app.use('/', apiRouters);
-app.listen(8081, () => {
+app.listen(8080, () => {
   console.log('mock data is running...');
 });

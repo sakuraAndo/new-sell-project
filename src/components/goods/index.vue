@@ -37,7 +37,7 @@
                   <span v-show="food.oldPrice" class="old">￥{{ food.oldPrice }}</span>
                 </div>
                 <div class="cart-wrapper">
-                  <cartcontrol :food="food"></cartcontrol>
+                  <cartcontrol :food="food" @add-food="addFood"></cartcontrol>
                 </div>
               </div>
             </li>
@@ -46,6 +46,7 @@
       </ul>
     </div>
     <shopcart
+      ref="shopcart"
       :selectFoods="selectFoods"
       :deliveryPrice="seller.deliveryPrice"
       :minPrice="seller.minPrice"
@@ -114,6 +115,9 @@ export default {
   },
 
   methods: {
+    addFood(event) {
+      this.$refs.shopcart.drop(event);
+    },
     selectMenu(index, event) {
       // eslint-disable-next-line
       if (!event._constructed) {

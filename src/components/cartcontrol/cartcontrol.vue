@@ -31,6 +31,7 @@ export default {
         // eslint-disable-next-line
         this.food.count += 1;
       }
+      this.$emit('add-food', event.target);
     },
 
     decreaseCart(event) {
