@@ -1,6 +1,6 @@
 <template>
   <div class="shopcart">
-    <div class="content">
+    <div class="content" @click="toggleList">
       <div class="content-left">
         <div class="logo-wrapper">
           <div class="logo" :class="{ 'high-light': totalCount > 0 }">
@@ -14,25 +14,49 @@
       <div class="content-right">
         <div class="pay" :class="payClass">{{ payDesc }}</div>
       </div>
-      <div class="ball-contain">
-        <div v-for="(ball, index) in balls" :key="index">
-          <transition
-            name="drop"
-            @before-enter="beforeDrop"
-            @enter="dropping"
-            @after-enter="afterDrop"
-          >
-            <div class="ball" v-show="ball.show">
-              <div class="inner inner-hook"></div>
-            </div>
-          </transition>
-        </div>
+    </div>
+    <div class="ball-contain">
+      <div v-for="(ball, index) in balls" :key="index">
+        <transition
+          name="drop"
+          @before-enter="beforeDrop"
+          @enter="dropping"
+          @after-enter="afterDrop"
+        >
+          <div class="ball" v-show="ball.show">
+            <div class="inner inner-hook"></div>
+          </div>
+        </transition>
       </div>
     </div>
+    <transition name="fold">
+      <div class="shopcart-list" v-show="listShow">
+        <div class="list-header">
+          <h1 class="title">购物车</h1>
+          <span class="empty">清空</span>
+        </div>
+        <div class="list-content" ref="listContent">
+          <ul>
+            <li class="food" v-for="(food, index) in selectFoods" :key="index">
+              <span class="name">{{ food.name }}</span>
+              <div class="price">
+                <span>￥{{ food.count * food.price }}</span>
+              </div>
+              <div class="cartcontrol-wrapper">
+                <cartcontrol @add-food="addFood" :food="food"></cartcontrol>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script>
+import BScroll from '@better-scroll/core';
+import cartcontrol from '../cartcontrol/cartcontrol.vue';
+
 export default {
   props: {
     selectFoods: {
@@ -51,13 +75,28 @@ export default {
       default: 0,
     },
   },
+  components: {
+    cartcontrol,
+  },
+
   data() {
     return {
       balls: [{ show: false }, { show: false }, { show: false }, { show: false }, { show: false }],
       dropBalls: [],
+      isFolded: true,
     };
   },
+
   methods: {
+    toggleList() {
+      if (!this.selectFoods.length) {
+        return;
+      }
+      this.isFolded = !this.isFolded;
+    },
+    addFood(target) {
+      this.drop(target);
+    },
     drop(el) {
       for (let i = 0; i < this.balls.length; i += 1) {
         const ball = this.balls[i];
@@ -108,7 +147,27 @@ export default {
       }
     },
   },
+
   computed: {
+    listShow() {
+      if (!this.selectFoods.length) {
+        this.isFolded = true;
+        return false;
+      }
+      let show = !this.isFolded;
+      if (show) {
+        this.$nextTick(() => {
+          if (!this.scroll) {
+            this.scroll = new BScroll(this.$refs.listContent, {
+              click: true
+            })
+          } else {
+            this.scroll.refresh();
+          }
+        })
+      }
+      return show;
+    },
     totalPrice() {
       let total = 0;
       this.selectFoods.forEach((food) => {
@@ -150,6 +209,7 @@ export default {
 </script>
 
 <style lang="scss">
+@import '../../common/scss/mixin.scss';
 .shopcart {
   position: fixed;
   left: 0;
@@ -250,19 +310,81 @@ export default {
         }
       }
     }
-    .ball-contain {
-      .ball {
-        position: fixed;
-        left: 32px;
-        bottom: 22px;
-        z-index: 200;
-        transition: all 0.4s cubic-bezier(0.49, -0.29, 0.75, 0.41);
-        .inner {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background-color: rgb(0, 160, 220);
-          transition: all 0.4s linear;
+  }
+  .ball-contain {
+    .ball {
+      position: fixed;
+      left: 32px;
+      bottom: 22px;
+      z-index: 200;
+      transition: all 0.4s cubic-bezier(0.49, -0.29, 0.75, 0.41);
+      .inner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: rgb(0, 160, 220);
+        transition: all 0.4s linear;
+      }
+    }
+  }
+  .shopcart-list {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    // y轴设置为-100%相当于向上移动自身的高度
+    transform: translate3d(0, -100%, 0);
+    transition: all 0.5s;
+    &.fold-enter,
+    &.fold-leave-active {
+      transform: translate3d(0, 0, 0);
+    }
+    .list-header {
+      height: 40px;
+      line-height: 40px;
+      padding: 0 18px;
+      background: #f3f5f7;
+      border-bottom: 1px solid rgba(7, 17, 27, 0.1);
+      .title {
+        float: left;
+        font-size: 14px;
+        color: rgb(7, 17, 27);
+      }
+      .empty {
+        float: right;
+        font-size: 14px;
+        color: rgb(0, 160, 220);
+      }
+    }
+    .list-content {
+      padding: 0 18px;
+      max-height: 217px;
+      overflow: hidden;
+      background: #fff;
+      .food {
+        position: relative;
+        padding: 12px 0;
+        box-sizing: border-box;
+        @include border-1px(rgba(7, 17, 27, 0.1));
+        .name {
+          line-height: 24px;
+          font-size: 14px;
+          color: rgb(7, 17, 27);
+        }
+        .price {
+          position: absolute;
+          right: 90px;
+          bottom: 12px;
+          line-height: 24px;
+          font-size: 14px;
+          font-weight: 700;
+          color: rgb(240, 20, 20);
+        }
+        .cartcontrol-wrapper {
+          position: absolute;
+          right: 0;
+          bottom: 6px;
         }
       }
     }
